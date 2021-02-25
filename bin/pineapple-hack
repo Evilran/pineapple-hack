@@ -1,0 +1,29 @@
+#!/usr/bin/env hhvm
+
+use Pineapple\Backend;
+use namespace HH\Lib\{C,File};
+
+<<__EntryPoint>>
+async function main(): Awaitable<void> {
+
+  require_once(__DIR__.'/../vendor/autoload.hack');
+  \Facebook\AutoloadMap\initialize();
+
+  $argv = vec(\HH\global_get('argv') as Container<_>);
+  if (C\count($argv) != 2) {
+      print("Usage: ".(string)$argv[0]." filename\n");
+      exit(1);
+  }
+
+  $filename = $argv[1];
+  if (! new File\Path($filename)->exists()) {
+      print("File not exists.\n");
+      exit(1);
+  }
+
+  $fr = File\open_read_only($filename);
+  $code = await $fr->readAsync();
+  $backend = new Backend();
+  $backend->execute($code);
+  exit(0);
+}
